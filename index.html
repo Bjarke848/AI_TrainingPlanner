@@ -238,136 +238,41 @@
         <div class="content">
             <div class="section">
                 <h2>What is AI Training Planner?</h2>
-                <p>A Python tool that analyzes your Garmin Connect training data and generates personalized weekly training plans using AI. It automatically detects patterns, warns about injury risks, tracks race proximity, and creates smart training recommendations based on your actual performance data.</p>
+                <p>A simple tool that analyzes your Garmin Connect training data and generates personalized weekly training plans using AI. Upload your data, get smart recommendations - all in your browser with complete privacy.</p>
             </div>
             
-            <div class="section">
-                <h2>✨ Smart Features</h2>
+            <div class="cta-section" style="margin-top: 40px;">
+                <h2>Ready to Create Your Training Plan?</h2>
+                <p style="margin: 20px 0; font-size: 1.1em;">Upload your Garmin data and get AI-powered weekly plans in seconds</p>
+                <a href="app.html" class="button" style="font-size: 1.3em; padding: 20px 50px;">🚀 Launch Web App</a>
+                
+                <div style="margin-top: 40px; padding-top: 30px; border-top: 2px solid #eee;">
+                    <p style="color: #666; margin-bottom: 15px;">Or use the Python version:</p>
+                    <a href="https://github.com/Bjarke848/AI_TrainingPlanner" class="button button-secondary">View on GitHub</a>
+                    <a href="https://github.com/Bjarke848/AI_TrainingPlanner/archive/refs/heads/main.zip" class="button button-secondary">Download Python v0.1</a>
+                </div>
+            </div>
+            
+            <div class="section" style="margin-top: 40px;">
+                <h2>✨ Key Features</h2>
                 <div class="features">
                     <div class="feature-card">
-                        <h3><span class="emoji">📋</span>Auto-Copy</h3>
-                        <p>Prompts automatically copied to clipboard - just paste into ChatGPT/Claude</p>
+                        <h3><span class="emoji">🔒</span>100% Private</h3>
+                        <p>All processing happens in your browser - your data never leaves your computer</p>
                     </div>
                     <div class="feature-card">
-                        <h3><span class="emoji">🏁</span>Race Alerts</h3>
-                        <p>Color-coded proximity warnings with training phase guidance (🔴🟠🟡🟢)</p>
+                        <h3><span class="emoji">📊</span>Smart Analysis</h3>
+                        <p>Training load tracking, injury risk warnings, and race proximity alerts</p>
                     </div>
                     <div class="feature-card">
-                        <h3><span class="emoji">⚠️</span>Load Warnings</h3>
-                        <p>A/C ratio analysis with injury risk alerts and actionable advice</p>
+                        <h3><span class="emoji">📋</span>Easy to Use</h3>
+                        <p>Upload CSV, fill in feedback, click generate - prompt auto-copies to clipboard</p>
                     </div>
                     <div class="feature-card">
-                        <h3><span class="emoji">💬</span>Interactive Feedback</h3>
-                        <p>Guided prompts for fatigue, sleep, motivation, soreness, and weekly schedule preferences</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3><span class="emoji">📊</span>Training Analysis</h3>
-                        <p>7-day and 28-day load tracking, significant events detection (ultras, high intensity)</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3><span class="emoji">📄</span>PDF Generation</h3>
+                        <h3><span class="emoji">�</span>PDF Plans</h3>
                         <p>AI automatically creates printable weekly plan PDFs</p>
                     </div>
                 </div>
-            </div>
-            
-            <div class="section">
-                <h2>🚀 Quick Start</h2>
-                
-                <h3>1. Installation</h3>
-                <div class="code-block">
-                    <code># Clone the repository
-git clone https://github.com/Bjarke848/AI_TrainingPlanner.git
-cd AI_TrainingPlanner
-
-# Install dependencies
-pip install pandas numpy pyperclip</code>
-                </div>
-                
-                <h3>2. Initial Setup (One-time)</h3>
-                <div class="code-block">
-                    <code># Export your Activities.csv from Garmin Connect
-# Place it in the AI_TrainingPlanner folder
-
-# Run setup
-python garmin_data_processor.py setup
-
-# Edit my_training_goals.txt with your race calendar and goals</code>
-                </div>
-                
-                <h3>3. Weekly Workflow</h3>
-                <div class="workflow">
-                    <div class="workflow-step">
-                        <div class="step-number">1</div>
-                        <p><strong>Update Feedback</strong><br>
-                        <code>python garmin_data_processor.py feedback</code></p>
-                    </div>
-                    <div class="workflow-arrow">→</div>
-                    <div class="workflow-step">
-                        <div class="step-number">2</div>
-                        <p><strong>Generate Plan</strong><br>
-                        <code>python garmin_data_processor.py weekly</code></p>
-                    </div>
-                    <div class="workflow-arrow">→</div>
-                    <div class="workflow-step">
-                        <div class="step-number">3</div>
-                        <p><strong>Paste to AI</strong><br>
-                        Press <code>Ctrl+V</code> in ChatGPT/Claude</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="section">
-                <h2>📦 What You Get</h2>
-                <ul>
-                    <li><strong>Training Load Analysis:</strong> 7-day and 28-day load with A/C ratio warnings</li>
-                    <li><strong>Race Proximity Alerts:</strong> Automatic detection of upcoming races with phase-specific guidance</li>
-                    <li><strong>Significant Events:</strong> Ultra runs (≥42km) and high-intensity sessions (TE ≥4.5)</li>
-                    <li><strong>Body Feedback Tracking:</strong> Fatigue, sleep, motivation, soreness, energy, stress</li>
-                    <li><strong>Schedule Integration:</strong> Preferred bike commute day, fixed commitments</li>
-                    <li><strong>AI-Ready Prompts:</strong> Comprehensive context for intelligent training plans</li>
-                </ul>
-            </div>
-            
-            <div class="section">
-                <h2>🎯 Perfect For</h2>
-                <div class="features">
-                    <div class="feature-card">
-                        <h3>Ultra Runners</h3>
-                        <p>Training for 50K+? Get periodized plans that manage volume safely</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>Multi-Sport Athletes</h3>
-                        <p>Balance running, cycling, swimming with intelligent load management</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>Comeback Training</h3>
-                        <p>Monitor injury-prone areas (knees, ankles/shins) with soreness tracking</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>Busy Schedules</h3>
-                        <p>Integrate training with work commitments and flexible bike commutes</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="section">
-                <h2>📝 Requirements</h2>
-                <ul>
-                    <li>Python 3.7+</li>
-                    <li>Garmin Connect account with training data</li>
-                    <li>Access to ChatGPT, Claude, or similar AI chat</li>
-                    <li>Dependencies: pandas, numpy, pyperclip</li>
-                </ul>
-            </div>
-            
-            <div class="cta-section">
-                <h2>Ready to Level Up Your Training?</h2>
-                <p style="margin: 20px 0;">Use the web app directly in your browser or download the Python version!</p>
-                <a href="app.html" class="button" style="font-size: 1.2em; padding: 18px 40px;">🚀 Launch Web App</a>
-                <br><br>
-                <a href="https://github.com/Bjarke848/AI_TrainingPlanner" class="button button-secondary">View on GitHub</a>
-                <a href="https://github.com/Bjarke848/AI_TrainingPlanner/archive/refs/heads/main.zip" class="button button-secondary">Download Python v0.1</a>
             </div>
         </div>
         
