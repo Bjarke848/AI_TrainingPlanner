@@ -663,8 +663,8 @@ def interactive_body_feedback():
         fatigue = input("Fatigue level (1-10, 10=fresh): ").strip() or "7"
         sleep = input("Sleep quality (1-10, 10=excellent): ").strip() or "7"
         motivation = input("Motivation (1-10, 10=very high): ").strip() or "7"
-        ankle = input("Ankle soreness (1-10, 10=no pain): ").strip() or "10"
-        knee = input("Knee soreness (1-10, 10=no pain): ").strip() or "10"
+        ankle = input("Ankle soreness (0-10, 0=no pain): ").strip() or "1"
+        knee = input("Knee soreness (0-10, 0=no pain): ").strip() or "1"
         energy = input("Energy level (low/normal/high): ").strip() or "normal"
         stress = input("Stress level (low/medium/high): ").strip() or "low"
         
