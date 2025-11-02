@@ -663,7 +663,7 @@ def interactive_body_feedback():
         fatigue = input("Fatigue level (1-10, 10=fresh): ").strip() or "7"
         sleep = input("Sleep quality (1-10, 10=excellent): ").strip() or "7"
         motivation = input("Motivation (1-10, 10=very high): ").strip() or "7"
-        ankle = input("Ankle soreness (0-10, 0=no pain): ").strip() or "1"
+        ankle_shins = input("Ankle/shins soreness (0-10, 0=no pain): ").strip() or "1"
         knee = input("Knee soreness (0-10, 0=no pain): ").strip() or "1"
         energy = input("Energy level (low/normal/high): ").strip() or "normal"
         stress = input("Stress level (low/medium/high): ").strip() or "low"
@@ -675,16 +675,16 @@ def interactive_body_feedback():
         print()
         notes = input("Any additional notes? ").strip() or ""
         
-        # Convert to soreness scale (inverse for ankle/knee)
-        ankle_soreness = 10 - int(ankle) if ankle.isdigit() else 0
-        knee_soreness = 10 - int(knee) if knee.isdigit() else 0
+        # Soreness values are already on correct scale (0=no pain, 10=severe)
+        ankle_shins_soreness = int(ankle_shins) if ankle_shins.isdigit() else 0
+        knee_soreness = int(knee) if knee.isdigit() else 0
         
         feedback = f"""## Body Feedback (Scale 1-10, where 10 = best/highest)
 
 fatigue: {fatigue}
 sleep_quality: {sleep}
 motivation: {motivation}
-ankle_soreness: {ankle_soreness}  # 0=no pain, 10=severe
+ankle_shins_soreness: {ankle_shins_soreness}  # 0=no pain, 10=severe
 knee_soreness: {knee_soreness}  # 0=no pain, 10=severe
 energy_level: {energy}
 stress_level: {stress}
