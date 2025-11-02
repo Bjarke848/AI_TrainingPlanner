@@ -7,6 +7,13 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import json
+import os
+
+try:
+    import pyperclip
+    CLIPBOARD_AVAILABLE = True
+except ImportError:
+    CLIPBOARD_AVAILABLE = False
 
 class GarminDataProcessor:
     """Process and analyze Garmin training data for AI-based training planning."""
@@ -243,6 +250,55 @@ class GarminDataProcessor:
             'activities_28d': len(df_28d)
         }
     
+    def get_race_warnings(self, goal_text):
+        """Parse race dates from goals and generate proximity warnings.
+        
+        Args:
+            goal_text: Training goals text containing race calendar
+            
+        Returns:
+            List of warning strings for upcoming races
+        """
+        import re
+        warnings = []
+        
+        if not goal_text:
+            return warnings
+        
+        # Look for dates in format: | Dec 7, 2025 | Event | Distance |
+        race_pattern = r'\|\s*([A-Z][a-z]{2}\s+\d{1,2},\s+\d{4})\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|'
+        matches = re.finditer(race_pattern, goal_text)
+        
+        now = datetime.now()
+        
+        for match in matches:
+            try:
+                date_str = match.group(1).strip()
+                event_name = match.group(2).strip()
+                distance = match.group(3).strip()
+                
+                race_date = datetime.strptime(date_str, '%b %d, %Y')
+                days_until = (race_date - now).days
+                weeks_until = round(days_until / 7)
+                
+                if days_until < 0:
+                    continue  # Skip past races
+                
+                # Generate warnings for races within next 8 weeks
+                if days_until <= 7:
+                    warnings.append(f"🔴 **RACE THIS WEEK:** {event_name} ({distance}) on {date_str} - TAPER MODE")
+                elif days_until <= 14:
+                    warnings.append(f"🟠 **RACE IN 2 WEEKS:** {event_name} ({distance}) on {date_str} - Begin taper")
+                elif days_until <= 28:
+                    warnings.append(f"🟡 **RACE IN {weeks_until} WEEKS:** {event_name} ({distance}) on {date_str} - Peak phase")
+                elif days_until <= 56:
+                    warnings.append(f"🟢 **RACE IN {weeks_until} WEEKS:** {event_name} ({distance}) on {date_str} - Build phase")
+                    
+            except Exception:
+                continue  # Skip if date parsing fails
+        
+        return warnings
+    
     def generate_ai_prompt(self, goal=None, weeks_history=4):
         """Generate a prompt for AI training planning."""
         
@@ -267,9 +323,28 @@ class GarminDataProcessor:
         prompt += f"""- **7-Day Load:** {load_summary['load_7d']} ({load_summary['activities_7d']} activities, Avg TE: {load_summary['avg_te_7d']})
 - **28-Day Load:** {load_summary['load_28d']} ({load_summary['activities_28d']} activities, Avg TE: {load_summary['avg_te_28d']})
 - **Acute:Chronic Ratio:** {load_summary['ac_ratio']} (Optimal: 0.8-1.3, >1.5 = injury risk)
+"""
 
-💡 *Load Guidance: Ratio <0.8 = ramping up safely possible, 0.8-1.3 = optimal training zone, >1.3 = fatigue accumulating*
+        # Add A/C ratio warnings
+        if load_summary['ac_ratio'] > 1.5:
+            prompt += "\n🔴 **WARNING:** Acute:Chronic ratio >1.5 indicates HIGH INJURY RISK. Consider reducing volume.\n"
+        elif load_summary['ac_ratio'] > 1.3:
+            prompt += "\n🟠 **CAUTION:** Acute:Chronic ratio >1.3 indicates fatigue accumulation. Monitor carefully.\n"
+        elif load_summary['ac_ratio'] < 0.8:
+            prompt += "\n🟢 **OPPORTUNITY:** Low A/C ratio - safe to ramp up training volume if feeling good.\n"
+        
+        prompt += "\n💡 *Load Guidance: Ratio <0.8 = ramping up safely possible, 0.8-1.3 = optimal training zone, >1.3 = fatigue accumulating*\n"
+        
+        # Add race proximity warnings
+        if goal:
+            race_warnings = self.get_race_warnings(goal)
+            if race_warnings:
+                prompt += "\n## 🏁 Upcoming Race Alerts\n\n"
+                for warning in race_warnings:
+                    prompt += f"{warning}\n"
+                prompt += "\n"
 
+        prompt += """
 ## Recent Significant Events (Last 3 Weeks)
 """
         
@@ -493,6 +568,32 @@ def weekly_plan():
     
     print()
     
+    # Show training load warnings
+    load_summary = processor.get_training_load_summary()
+    print("TRAINING LOAD ANALYSIS:")
+    print("=" * 70)
+    print(f"7-Day Load: {load_summary['load_7d']} | 28-Day Load: {load_summary['load_28d']}")
+    print(f"A/C Ratio: {load_summary['ac_ratio']}")
+    
+    if load_summary['ac_ratio'] > 1.5:
+        print("🔴 WARNING: HIGH INJURY RISK - Consider reducing volume")
+    elif load_summary['ac_ratio'] > 1.3:
+        print("🟠 CAUTION: Fatigue accumulating - monitor carefully")
+    elif load_summary['ac_ratio'] < 0.8:
+        print("🟢 OPPORTUNITY: Safe to ramp up if feeling good")
+    else:
+        print("✅ Optimal training zone")
+    print()
+    
+    # Show race proximity warnings
+    race_warnings = processor.get_race_warnings(goals)
+    if race_warnings:
+        print("UPCOMING RACE ALERTS:")
+        print("=" * 70)
+        for warning in race_warnings:
+            print(warning)
+        print()
+    
     # Generate prompt for next week
     prompt = processor.generate_ai_prompt(goal=goals, weeks_history=4)
     
@@ -501,21 +602,43 @@ def weekly_plan():
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(prompt)
     
+    # Try to copy to clipboard
+    if CLIPBOARD_AVAILABLE:
+        try:
+            pyperclip.copy(prompt)
+            clipboard_msg = "✅ Prompt copied to clipboard!"
+        except Exception:
+            clipboard_msg = "⚠️ Clipboard copy failed (but file saved)"
+    else:
+        clipboard_msg = "ℹ️ Install pyperclip for auto-clipboard: pip install pyperclip"
+    
     print("=" * 70)
     print("PROMPT GENERATED FOR AI CHAT")
     print("=" * 70)
     print(f"✓ Saved to '{filename}'")
+    print(clipboard_msg)
     print()
-    print("COPY THIS TO YOUR AI CHAT:")
-    print("=" * 70)
-    print()
-    print(prompt)
+    
+    if CLIPBOARD_AVAILABLE:
+        print("🎯 READY TO PASTE!")
+        print("=" * 70)
+        print("Just open ChatGPT/Claude/Copilot and press Ctrl+V")
+    else:
+        print("COPY THIS TO YOUR AI CHAT:")
+        print("=" * 70)
+        print()
+        print(prompt)
+    
     print()
     print("=" * 70)
     print("NEXT STEPS:")
     print("=" * 70)
-    print("1. Copy the prompt above")
-    print("2. Paste into ChatGPT, Claude, or GitHub Copilot Chat")
+    if CLIPBOARD_AVAILABLE:
+        print("1. Open ChatGPT, Claude, or GitHub Copilot Chat")
+        print("2. Press Ctrl+V to paste the prompt")
+    else:
+        print("1. Copy the prompt above")
+        print("2. Paste into ChatGPT, Claude, or GitHub Copilot Chat")
     print("3. Receive your personalized weekly training plan")
     print("4. Save the AI's response for reference during the week")
     print()
@@ -523,6 +646,54 @@ def weekly_plan():
     print("1. Export updated Activities.csv from Garmin")
     print("2. Run: python garmin_data_processor.py weekly")
     print()
+
+
+def interactive_body_feedback():
+    """Interactively collect body feedback from user."""
+    print("=" * 70)
+    print("BODY FEEDBACK UPDATE")
+    print("=" * 70)
+    print()
+    print("Quick check-in on how you're feeling (Scale 1-10, where 10 = best)")
+    print()
+    
+    try:
+        fatigue = input("Fatigue level (1-10, 10=fresh): ").strip() or "7"
+        sleep = input("Sleep quality (1-10, 10=excellent): ").strip() or "7"
+        motivation = input("Motivation (1-10, 10=very high): ").strip() or "7"
+        ankle = input("Ankle soreness (1-10, 10=no pain): ").strip() or "10"
+        knee = input("Knee soreness (1-10, 10=no pain): ").strip() or "10"
+        energy = input("Energy level (low/normal/high): ").strip() or "normal"
+        stress = input("Stress level (low/medium/high): ").strip() or "low"
+        notes = input("Any additional notes? ").strip() or ""
+        
+        # Convert to soreness scale (inverse for ankle/knee)
+        ankle_soreness = 10 - int(ankle) if ankle.isdigit() else 0
+        knee_soreness = 10 - int(knee) if knee.isdigit() else 0
+        
+        feedback = f"""## Body Feedback (Scale 1-10, where 10 = best/highest)
+
+fatigue: {fatigue}
+sleep_quality: {sleep}
+motivation: {motivation}
+ankle_soreness: {ankle_soreness}  # 0=no pain, 10=severe
+knee_soreness: {knee_soreness}  # 0=no pain, 10=severe
+energy_level: {energy}
+stress_level: {stress}
+
+notes: "{notes if notes else 'No additional notes.'}"
+"""
+        
+        with open('body_feedback.txt', 'w', encoding='utf-8') as f:
+            f.write(feedback)
+        
+        print()
+        print("✅ Body feedback saved to 'body_feedback.txt'")
+        print()
+        
+    except KeyboardInterrupt:
+        print("\n⚠️ Cancelled")
+        return
 
 
 def main():
@@ -536,15 +707,17 @@ def main():
             initial_setup()
         elif command == 'weekly':
             weekly_plan()
+        elif command == 'feedback':
+            interactive_body_feedback()
         else:
-            print("Unknown command. Use 'setup' or 'weekly'")
+            print("Unknown command. Available commands:")
             print()
             print("Usage:")
-            print("  python garmin_data_processor.py setup   # Initial setup")
-            print("  python garmin_data_processor.py weekly  # Generate weekly plan")
+            print("  python garmin_data_processor.py setup     # Initial setup")
+            print("  python garmin_data_processor.py weekly    # Generate weekly plan")
+            print("  python garmin_data_processor.py feedback  # Update body feedback")
     else:
         # Check if setup has been done
-        import os
         if os.path.exists('my_training_goals.txt'):
             weekly_plan()
         else:
