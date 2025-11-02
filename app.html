@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Training Planner - Web App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .step {
+            background: #f7f7f7;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .step h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .file-upload {
+            border: 2px dashed #667eea;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .file-upload:hover {
+            background: #f0f4ff;
+            border-color: #764ba2;
+        }
+        
+        .file-upload.drag-over {
+            background: #e8f0ff;
+            border-color: #764ba2;
+        }
+        
+        .file-upload input[type="file"] {
+            display: none;
+        }
+        
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 1em;
+            resize: vertical;
+            margin-top: 10px;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 1em;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .feedback-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .button-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .output {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .output.show {
+            display: block;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .status.show {
+            display: block;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .analysis-summary {
+            display: none;
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .analysis-summary.show {
+            display: block;
+        }
+        
+        .summary-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+        }
+        
+        .summary-item strong {
+            color: #667eea;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #ffc107;
+            margin: 10px 0;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏃‍♂️ AI Training Planner</h1>
+            <p>Generate your personalized training plan - 100% in your browser</p>
+        </header>
+        
+        <div class="content">
+            <!-- Step 1: Upload CSV -->
+            <div class="step">
+                <h2><span class="step-number">1</span>Upload Your Garmin Data</h2>
+                <p style="margin-bottom: 15px;">Export your Activities.csv from Garmin Connect and upload it here. Your data stays in your browser - nothing is uploaded to any server.</p>
+                
+                <div class="file-upload" id="fileUpload">
+                    <div class="upload-icon">📁</div>
+                    <p><strong>Click to select</strong> or drag and drop your Activities.csv file</p>
+                    <input type="file" id="csvFile" accept=".csv">
+                </div>
+                
+                <div class="status" id="uploadStatus"></div>
+                <div class="analysis-summary" id="analysisSummary"></div>
+            </div>
+            
+            <!-- Step 2: Training Goals -->
+            <div class="step">
+                <h2><span class="step-number">2</span>Your Training Goals</h2>
+                <p style="margin-bottom: 15px;">Enter your race calendar, weekly commitments, and training goals.</p>
+                
+                <label for="goals">Training Goals & Race Calendar</label>
+                <textarea id="goals" rows="10">## Ultra Running Training Plan 2025-2026
+
+### Race Calendar (11-Month Progression):
+
+| Date | Event | Distance | Key Details |
+|------|-------|----------|-------------|
+| Dec 7, 2025 | Trail Run | 49 km | 950m elevation gain |
+| Jan 17, 2026 | Backyard Ultra | 80 km | 12 × 4.4 mile loops |
+| Mar 27, 2026 | *Backyard Ultra (B-Race)* | 150+ km | Multi-day weekend event |
+| May 30, 2026 | 12 Hour Run Event | 100 km | — |
+| **Sep 12, 2026** | **100 Miles Mors (A-Race)** | **160 km** | **Primary goal** |
+
+---
+
+### Fixed Weekly Commitments (Non-Negotiable):
+
+**Tuesday @ Midday:**
+- Work running club: ~11 km flat terrain
+- Use as: easy run, or social recovery run
+
+**Wednesday @ 19:00:**
+- Pool swimming session (fixed commitment)
+
+**Saturday @ 12:00 (Every Other Week):**
+- Pool swimming session (alternates bi-weekly)
+
+**Flexible (1x per week):**
+- Bike commute to work: 47 km total (23.5 km each way)
+- Use as: Endurance ride, active recovery, or commute day
+
+---
+
+### Injury Prevention Priorities:
+
+**Weaknesses:**
+- knee instability (Start becoming an issue after 50 kilometers run)
+- Left ankle weakness/instability (starts become sore and hurt after 45 kilometers)
+
+**Required:** 2-3 strength sessions per week focusing on:
+1. Single-leg stability (step-ups, single-leg deadlifts, goblet squats)
+2. Knee strengthening (squats, lunges, Bulgarian split squats, step-downs)
+3. Ankle stability & proprioception (calf raises, balance work, elastic band exercises)
+4. Hip/glute activation (bridges, clamshells, lateral walks)
+5. Core stability for running economy
+6. Eccentric loading for injury resilience
+
+**Home Gym Equipment:**
+- Kettlebells, dumbbells, resistance bands, yoga mat
+- Reebok step board (15cm/20cm/25cm)
+---
+
+### Training Plan Guidelines:
+
+**Must Include:**
+- 2-3 dedicated strength sessions weekly (atleast 40 min each)
+- Progressive volume build toward 100-mile goal
+- Active recovery between hard efforts
+
+**Schedule Constraints:**
+- Tuesday running already scheduled (11 km)
+- Wednesday evening unavailable (swim session)
+- Plan long runs on weekends, 
+- noon swim when scheduled on Saturday
+- Strength can be done early morning, or after work
+- Bike commute day should be strategic (not day before/after key workouts) and not on Tuesdays</textarea>
+            </div>
+            
+            <!-- Step 3: Body Feedback -->
+            <div class="step">
+                <h2><span class="step-number">3</span>How Are You Feeling?</h2>
+                <p style="margin-bottom: 15px;">Quick check-in on your current state (1-10 scale).</p>
+                
+                <div class="feedback-grid">
+                    <div class="form-group">
+                        <label for="fatigue">Fatigue (10=fresh)</label>
+                        <input type="number" id="fatigue" min="1" max="10" value="7">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sleep">Sleep Quality (10=excellent)</label>
+                        <input type="number" id="sleep" min="1" max="10" value="7">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="motivation">Motivation (10=very high)</label>
+                        <input type="number" id="motivation" min="1" max="10" value="7">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ankleShins">Ankle/Shins Soreness (0=no pain)</label>
+                        <input type="number" id="ankleShins" min="0" max="10" value="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="knee">Knee Soreness (0=no pain)</label>
+                        <input type="number" id="knee" min="0" max="10" value="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="energy">Energy Level</label>
+                        <select id="energy">
+                            <option value="low">Low</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="stress">Stress Level</label>
+                        <select id="stress">
+                            <option value="low" selected>Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="commuteDay">Preferred Bike Commute Day</label>
+                        <select id="commuteDay">
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday" selected>Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="none">None this week</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="notes">Additional Notes</label>
+                    <textarea id="notes" rows="3" placeholder="Any other relevant information..."></textarea>
+                </div>
+            </div>
+            
+            <!-- Step 4: Generate -->
+            <div class="step">
+                <h2><span class="step-number">4</span>Generate Your AI Prompt</h2>
+                <button class="button" id="generateBtn" disabled>Generate Training Plan Prompt</button>
+                
+                <div class="status" id="generateStatus"></div>
+                
+                <div class="output" id="output"></div>
+                
+                <button class="button button-secondary hidden" id="copyBtn">📋 Copy to Clipboard</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let activitiesData = null;
+        
+        // File upload handling
+        const fileUpload = document.getElementById('fileUpload');
+        const csvFile = document.getElementById('csvFile');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const analysisSummary = document.getElementById('analysisSummary');
+        const generateBtn = document.getElementById('generateBtn');
+        
+        fileUpload.addEventListener('click', () => csvFile.click());
+        
+        fileUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUpload.classList.add('drag-over');
+        });
+        
+        fileUpload.addEventListener('dragleave', () => {
+            fileUpload.classList.remove('drag-over');
+        });
+        
+        fileUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUpload.classList.remove('drag-over');
+            if (e.dataTransfer.files.length) {
+                csvFile.files = e.dataTransfer.files;
+                handleFileUpload();
+            }
+        });
+        
+        csvFile.addEventListener('change', handleFileUpload);
+        
+        function handleFileUpload() {
+            const file = csvFile.files[0];
+            if (!file) return;
+            
+            showStatus(uploadStatus, 'info', '⏳ Processing your data...');
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const csv = e.target.result;
+                    activitiesData = parseCSV(csv);
+                    
+                    if (activitiesData && activitiesData.length > 0) {
+                        showStatus(uploadStatus, 'success', `✅ Successfully loaded ${activitiesData.length} activities!`);
+                        showAnalysisSummary();
+                        generateBtn.disabled = false;
+                    } else {
+                        showStatus(uploadStatus, 'error', '❌ No activities found in the file. Please check your CSV.');
+                    }
+                } catch (error) {
+                    showStatus(uploadStatus, 'error', `❌ Error processing file: ${error.message}`);
+                    console.error(error);
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        function parseCSV(csv) {
+            const lines = csv.split('\n');
+            if (lines.length < 2) return null;
+            
+            // Parse header
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            
+            // Parse data
+            const data = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                
+                const values = parseCSVLine(lines[i]);
+                if (values.length !== headers.length) continue;
+                
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = values[index];
+                });
+                
+                // Parse and convert key fields
+                if (row['Dato']) {
+                    row.parsedDate = parseDanishDate(row['Dato']);
+                }
+                
+                // Distance - handle "Distance" column (not "Afstand")
+                const distanceValue = row['Distance'] || row['Afstand'] || '';
+                if (distanceValue && distanceValue !== '--' && distanceValue.trim() !== '') {
+                    row.distance = parseFloat(distanceValue.replace(',', '.'));
+                } else {
+                    row.distance = 0;
+                }
+                
+                if (row['Tid']) {
+                    row.durationMinutes = parseDuration(row['Tid']);
+                }
+                
+                // Aerobic TE
+                const teValue = row['Aerob TE'] || '';
+                if (teValue && teValue !== '--' && teValue.trim() !== '') {
+                    row.aerobicTE = parseFloat(teValue.replace(',', '.'));
+                } else {
+                    row.aerobicTE = 0;
+                }
+                
+                data.push(row);
+            }
+            
+            // Sort by date (newest first)
+            data.sort((a, b) => b.parsedDate - a.parsedDate);
+            
+            return data;
+        }
+        
+        function parseCSVLine(line) {
+            const values = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    values.push(current.trim().replace(/"/g, ''));
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            values.push(current.trim().replace(/"/g, ''));
+            return values;
+        }
+        
+        function parseDanishDate(dateStr) {
+            // Format: "2025-11-01 18:29:36" or "01-11-2025"
+            const parts = dateStr.split(/[\s-]/);
+            if (parts.length >= 3) {
+                // Try YYYY-MM-DD format first
+                if (parts[0].length === 4) {
+                    return new Date(parts[0], parts[1] - 1, parts[2]);
+                } else {
+                    // DD-MM-YYYY format
+                    return new Date(parts[2], parts[1] - 1, parts[0]);
+                }
+            }
+            return new Date(dateStr);
+        }
+        
+        function parseDuration(timeStr) {
+            // Format: "1:23:45" (H:MM:SS) or "0:45" (H:MM) or "1:02" (H:MM)
+            if (!timeStr || timeStr === '--') return 0;
+            
+            const parts = timeStr.split(':').map(p => parseInt(p) || 0);
+            if (parts.length === 3) {
+                // H:MM:SS format
+                return parts[0] * 60 + parts[1] + parts[2] / 60;
+            } else if (parts.length === 2) {
+                // H:MM format (hours:minutes)
+                return parts[0] * 60 + parts[1];
+            }
+            return 0;
+        }
+        
+        function showAnalysisSummary() {
+            const last7Days = getActivitiesInLastDays(7);
+            const last28Days = getActivitiesInLastDays(28);
+            
+            const load7 = last7Days.reduce((sum, a) => sum + (a.durationMinutes || 0), 0);
+            const load28 = last28Days.reduce((sum, a) => sum + (a.durationMinutes || 0), 0);
+            const acRatio = load28 > 0 ? (load7 / (load28 / 4)).toFixed(2) : 0;
+            
+            let acWarning = '';
+            if (acRatio > 1.5) {
+                acWarning = '<div class="warning">🔴 HIGH INJURY RISK - Consider reducing volume</div>';
+            } else if (acRatio > 1.3) {
+                acWarning = '<div class="warning">🟠 CAUTION - Fatigue accumulating</div>';
+            } else if (acRatio < 0.8) {
+                acWarning = '<div class="warning">🟢 OPPORTUNITY - Safe to ramp up</div>';
+            } else {
+                acWarning = '<div class="warning" style="background: #d4edda; color: #155724;">✅ Optimal training zone</div>';
+            }
+            
+            analysisSummary.innerHTML = `
+                <div class="summary-item"><strong>Total Activities:</strong> ${activitiesData.length}</div>
+                <div class="summary-item"><strong>Last 7 Days:</strong> ${last7Days.length} activities, ${Math.round(load7)} minutes</div>
+                <div class="summary-item"><strong>Last 28 Days:</strong> ${last28Days.length} activities, ${Math.round(load28)} minutes</div>
+                <div class="summary-item"><strong>A/C Ratio:</strong> ${acRatio}</div>
+                ${acWarning}
+            `;
+            analysisSummary.classList.add('show');
+        }
+        
+        function getActivitiesInLastDays(days) {
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - days);
+            return activitiesData.filter(a => a.parsedDate >= cutoff);
+        }
+        
+        // Generate prompt
+        generateBtn.addEventListener('click', generatePrompt);
+        
+        function generatePrompt() {
+            const output = document.getElementById('output');
+            const generateStatus = document.getElementById('generateStatus');
+            const copyBtn = document.getElementById('copyBtn');
+            
+            try {
+                showStatus(generateStatus, 'info', '⏳ Generating your AI prompt...');
+                
+                const prompt = buildAIPrompt();
+                
+                output.textContent = prompt;
+                output.classList.add('show');
+                copyBtn.classList.remove('hidden');
+                
+                showStatus(generateStatus, 'success', '✅ Prompt generated! Copy it and paste into ChatGPT or Claude.');
+                
+                // Scroll to output
+                output.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                
+            } catch (error) {
+                showStatus(generateStatus, 'error', `❌ Error: ${error.message}`);
+                console.error(error);
+            }
+        }
+        
+        function buildAIPrompt() {
+            const goals = document.getElementById('goals').value;
+            const fatigue = document.getElementById('fatigue').value;
+            const sleep = document.getElementById('sleep').value;
+            const motivation = document.getElementById('motivation').value;
+            const ankleShins = document.getElementById('ankleShins').value;
+            const knee = document.getElementById('knee').value;
+            const energy = document.getElementById('energy').value;
+            const stress = document.getElementById('stress').value;
+            const commuteDay = document.getElementById('commuteDay').value;
+            const notes = document.getElementById('notes').value;
+            
+            let prompt = '# AI Training Planner - Weekly Context\n\n';
+            
+            // Training load summary
+            const last7 = getActivitiesInLastDays(7);
+            const last28 = getActivitiesInLastDays(28);
+            const load7 = last7.reduce((sum, a) => sum + (a.durationMinutes || 0), 0);
+            const load28 = last28.reduce((sum, a) => sum + (a.durationMinutes || 0), 0);
+            const acRatio = load28 > 0 ? (load7 / (load28 / 4)).toFixed(2) : 0;
+            
+            prompt += '## Training Load Summary\n';
+            prompt += `7-Day Load: ${Math.round(load7)} minutes\n`;
+            prompt += `28-Day Load: ${Math.round(load28)} minutes\n`;
+            prompt += `A/C Ratio: ${acRatio}`;
+            
+            if (acRatio > 1.5) {
+                prompt += ' 🔴 HIGH INJURY RISK - Reduce volume\n';
+            } else if (acRatio > 1.3) {
+                prompt += ' 🟠 CAUTION - Fatigue accumulating\n';
+            } else if (acRatio < 0.8) {
+                prompt += ' 🟢 Safe to ramp up\n';
+            } else {
+                prompt += ' ✅ Optimal zone\n';
+            }
+            prompt += '\n';
+            
+            // Race warnings
+            const raceWarnings = extractRaceWarnings(goals);
+            if (raceWarnings.length > 0) {
+                prompt += '## Upcoming Race Alerts\n';
+                raceWarnings.forEach(warning => {
+                    prompt += warning + '\n';
+                });
+                prompt += '\n';
+            }
+            
+            // Significant events
+            const significantEvents = getSignificantEvents();
+            if (significantEvents.length > 0) {
+                prompt += '## Significant Recent Events\n';
+                significantEvents.forEach(event => {
+                    prompt += event + '\n';
+                });
+                prompt += '\n';
+            }
+            
+            // Weekly summary by activity type
+            prompt += '## Last 4 Weeks Summary (by Activity Type)\n';
+            const weeklySummary = getWeeklySummaryByType(4);
+            prompt += weeklySummary + '\n';
+            
+            // Recent activities
+            prompt += '## Most Recent Activities (Last 10)\n';
+            const recent = activitiesData.slice(0, 10);
+            recent.forEach(activity => {
+                const date = activity.parsedDate.toISOString().split('T')[0];
+                const type = activity['Aktivitetstype'] || 'Unknown';
+                const dist = activity.distance ? `${activity.distance.toFixed(1)} km` : '';
+                const dur = activity.durationMinutes ? `${Math.round(activity.durationMinutes)} min` : '';
+                const te = activity.aerobicTE ? `, TE: ${activity.aerobicTE.toFixed(1)}` : '';
+                prompt += `\n- **${date}** - ${type}: ${dist}, ${dur}${te}`;
+            });
+            prompt += '\n\n';
+            
+            // Training goals
+            if (goals) {
+                prompt += '## Training Goal\n';
+                prompt += goals + '\n\n';
+            }
+            
+            // Body feedback
+            prompt += '## Body Feedback (Scale 1-10, where 10 = best/highest)\n\n';
+            prompt += `fatigue: ${fatigue}\n`;
+            prompt += `sleep_quality: ${sleep}\n`;
+            prompt += `motivation: ${motivation}\n`;
+            prompt += `ankle_shins_soreness: ${ankleShins}  # 0=no pain, 10=severe\n`;
+            prompt += `knee_soreness: ${knee}  # 0=no pain, 10=severe\n`;
+            prompt += `energy_level: ${energy}\n`;
+            prompt += `stress_level: ${stress}\n\n`;
+            
+            prompt += '## Schedule Preferences\n\n';
+            prompt += `preferred_bike_commute_day: ${commuteDay}  # Best day for 47km bike commute this week\n\n`;
+            
+            if (notes) {
+                prompt += `notes: "${notes}"\n\n`;
+            }
+            
+            // Request section
+            const today = new Date();
+            const todayName = today.toLocaleDateString('en-US', { weekday: 'long' });
+            const todayDate = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            
+            prompt += '## Request\n';
+            prompt += 'Based on my training history above, please:\n';
+            prompt += '1. Analyze my current training patterns and identify strengths/weaknesses\n';
+            prompt += '2. Suggest a balanced weekly training plan for the next week\n';
+            prompt += '3. Include specific workouts with recommended duration, intensity, and type\n';
+            prompt += '4. Consider recovery needs based on my recent training load\n';
+            prompt += '5. Help me progress toward my goals while avoiding overtraining\n\n';
+            
+            prompt += `## This Week's Context\n`;
+            prompt += `Today is ${todayName}, ${todayDate}.\n\n`;
+            
+            prompt += 'Please provide a SPECIFIC weekly training plan for next week:\n';
+            prompt += '1. List each day with specific workouts\n';
+            prompt += '2. Include distance/duration targets for each session\n';
+            prompt += '3. Specify intensity levels (easy, moderate, tempo, intervals)\n';
+            prompt += '4. Indicate which are key workouts vs. recovery sessions\n';
+            prompt += '5. Suggest alternatives if I need to adjust due to schedule conflicts\n\n';
+            
+            prompt += 'Format each day clearly so I can follow it easily.\n\n';
+            prompt += '**IMPORTANT: After creating the weekly plan, automatically generate a clean, formatted PDF version of the training plan that I can print or save. The PDF should include the week dates, daily workouts, and key notes/warnings.**';
+            
+            return prompt;
+        }
+        
+        function extractRaceWarnings(goalsText) {
+            const warnings = [];
+            const lines = goalsText.split('\n');
+            const today = new Date();
+            
+            lines.forEach(line => {
+                // Look for date patterns: "Dec 7, 2025" or "2025-12-07"
+                const dateMatch = line.match(/(\w{3}\s+\d{1,2},?\s+\d{4})|(\d{4}-\d{2}-\d{2})/);
+                if (dateMatch) {
+                    const raceDate = new Date(dateMatch[0]);
+                    const daysUntil = Math.floor((raceDate - today) / (1000 * 60 * 60 * 24));
+                    const weeksUntil = Math.floor(daysUntil / 7);
+                    
+                    if (daysUntil >= 0 && weeksUntil <= 8) {
+                        let emoji = '🟢';
+                        let phase = 'Build phase';
+                        
+                        if (weeksUntil <= 1) {
+                            emoji = '🔴';
+                            phase = 'Taper - reduce volume, maintain intensity';
+                        } else if (weeksUntil <= 2) {
+                            emoji = '🟠';
+                            phase = 'Final prep - last hard efforts';
+                        } else if (weeksUntil <= 4) {
+                            emoji = '🟡';
+                            phase = 'Peak training - race-specific work';
+                        }
+                        
+                        warnings.push(`${emoji} **RACE IN ${weeksUntil} WEEKS:** ${line.trim()} - ${phase}`);
+                    }
+                }
+            });
+            
+            return warnings;
+        }
+        
+        function getSignificantEvents() {
+            const events = [];
+            const ultraRuns = activitiesData.filter(a => 
+                (a['Aktivitetstype'] === 'Løb' || a['Aktivitetstype'] === 'Trail-løb') && 
+                a.distance >= 42
+            );
+            
+            ultraRuns.slice(0, 3).forEach(run => {
+                const date = run.parsedDate.toISOString().split('T')[0];
+                const daysAgo = Math.floor((new Date() - run.parsedDate) / (1000 * 60 * 60 * 24));
+                events.push(`🏃 Ultra Run: ${run.distance.toFixed(1)} km on ${date} (${daysAgo} days ago)`);
+            });
+            
+            const highTE = activitiesData.filter(a => a.aerobicTE >= 4.5);
+            highTE.slice(0, 3).forEach(activity => {
+                const date = activity.parsedDate.toISOString().split('T')[0];
+                const daysAgo = Math.floor((new Date() - activity.parsedDate) / (1000 * 60 * 60 * 24));
+                events.push(`⚡ High Intensity: ${activity['Aktivitetstype']} with TE ${activity.aerobicTE.toFixed(1)} on ${date} (${daysAgo} days ago)`);
+            });
+            
+            return events.slice(0, 5);
+        }
+        
+        function getWeeklySummaryByType(weeks) {
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - (weeks * 7));
+            
+            const recentActivities = activitiesData.filter(a => a.parsedDate >= cutoff);
+            
+            // Group by activity type
+            const byType = {};
+            recentActivities.forEach(activity => {
+                const type = activity['Aktivitetstype'] || 'Unknown';
+                if (!byType[type]) {
+                    byType[type] = {
+                        count: 0,
+                        distance: 0,
+                        duration: 0,
+                        totalTE: 0,
+                        teCount: 0
+                    };
+                }
+                byType[type].count++;
+                byType[type].distance += activity.distance || 0;
+                byType[type].duration += activity.durationMinutes || 0;
+                if (activity.aerobicTE) {
+                    byType[type].totalTE += activity.aerobicTE;
+                    byType[type].teCount++;
+                }
+            });
+            
+            let summary = '';
+            Object.entries(byType).forEach(([type, stats]) => {
+                const avgTE = stats.teCount > 0 ? (stats.totalTE / stats.teCount).toFixed(1) : 'N/A';
+                summary += `\n**${type}**: ${stats.count} sessions, ${stats.distance.toFixed(1)} km, ${Math.round(stats.duration)} min`;
+                if (avgTE !== 'N/A') {
+                    summary += `, Avg TE: ${avgTE}`;
+                }
+            });
+            
+            return summary;
+        }
+        
+        // Copy to clipboard
+        document.getElementById('copyBtn').addEventListener('click', function() {
+            const output = document.getElementById('output');
+            const text = output.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = this.textContent;
+                this.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    this.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                alert('Failed to copy. Please select and copy manually.');
+                console.error(err);
+            });
+        });
+        
+        function showStatus(element, type, message) {
+            element.className = `status show ${type}`;
+            element.textContent = message;
+        }
+    </script>
+</body>
+</html>
