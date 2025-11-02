@@ -446,6 +446,8 @@ Please provide a SPECIFIC weekly training plan for next week (week starting {wee
 5. Suggest alternatives if I need to adjust due to schedule conflicts
 
 Format each day clearly so I can follow it easily.
+
+**IMPORTANT: After creating the weekly plan, automatically generate a clean, formatted PDF version of the training plan that I can print or save. The PDF should include the week dates, daily workouts, and key notes/warnings.**
 """
         
         return prompt
@@ -665,6 +667,12 @@ def interactive_body_feedback():
         knee = input("Knee soreness (1-10, 10=no pain): ").strip() or "10"
         energy = input("Energy level (low/normal/high): ").strip() or "normal"
         stress = input("Stress level (low/medium/high): ").strip() or "low"
+        
+        print()
+        print("--- Schedule Preferences ---")
+        commute_day = input("Preferred bike commute day this week (Mon/Tue/Wed/Thu/Fri or 'none'): ").strip() or "Thursday"
+        
+        print()
         notes = input("Any additional notes? ").strip() or ""
         
         # Convert to soreness scale (inverse for ankle/knee)
@@ -680,6 +688,10 @@ ankle_soreness: {ankle_soreness}  # 0=no pain, 10=severe
 knee_soreness: {knee_soreness}  # 0=no pain, 10=severe
 energy_level: {energy}
 stress_level: {stress}
+
+## Schedule Preferences
+
+preferred_bike_commute_day: {commute_day}  # Best day for 47km bike commute this week
 
 notes: "{notes if notes else 'No additional notes.'}"
 """

@@ -1,11 +1,15 @@
 ## Body Feedback (Scale 1-10, where 10 = best/highest)
 
-fatigue: 6  # recovering from 57km ultra on Oct 25
+fatigue: 8
 sleep_quality: 8
-motivation: 9
-ankle_soreness: 5  # left ankle - came back after Saturday 12k run
-knee_soreness: 6  # still sore after 6 hour run
-energy_level: normal
-stress_level: low
+motivation: 8
+ankle_soreness: 4  # 0=no pain, 10=severe
+knee_soreness: 6  # 0=no pain, 10=severe
+energy_level: 8
+stress_level: 4
 
-notes: "Feeling recovered from ultra race overall, but knee and ankle issues flared up when trying to ramp up volume this week. Dec 7 trail race (49km, 950m elevation) is 5 weeks away - need to balance building fitness with recovery and injury prevention."
+## Schedule Preferences
+
+preferred_bike_commute_day: wed  # Best day for 47km bike commute this week
+
+notes: "Exam monday morning and i need workout for today focus on knee and hib strength"
